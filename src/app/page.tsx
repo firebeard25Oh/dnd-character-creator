@@ -126,7 +126,7 @@ export default function Home() {
       <header className="border-b border-brass/40 px-6 py-5 flex items-center justify-between">
         <div>
           <p className="font-display text-xs uppercase tracking-[0.2em] text-brass">Chronicle</p>
-          <h1 className="font-display text-2xl text-oxblood-deep">Character Creator</h1>
+          <h1 className="font-display text-2xl text-oxblood-deep">Character Creator!</h1>
         </div>
         <button
           onClick={startOver}

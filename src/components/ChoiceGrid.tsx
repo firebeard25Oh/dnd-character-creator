@@ -23,7 +23,10 @@ export function ChoiceGrid({
         return (
           <button
             key={item.id}
-            onClick={() => onSelect(item.id)}
+            aria-pressed={active}
+            onClick={() => {
+              if (!active) onSelect(item.id);
+            }}
             className={`text-left paper-panel rounded-sm p-4 transition-all ${
               active
                 ? "ring-2 ring-oxblood bg-parchment-dim"

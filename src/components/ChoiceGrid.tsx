@@ -11,15 +11,26 @@ export function ChoiceGrid({
   items,
   selectedId,
   onSelect,
+  emphasizeSelection = false,
 }: {
   items: ChoiceCardData[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  emphasizeSelection?: boolean;
 }) {
   return (
     <div className="grid sm:grid-cols-2 gap-4">
       {items.map((item) => {
         const active = item.id === selectedId;
+        const selectionClass = emphasizeSelection
+          ? active
+            ? "choice-card-selected"
+            : selectedId !== null
+              ? "choice-card-muted"
+              : "hover:bg-parchment-dim/50"
+          : active
+            ? "ring-2 ring-oxblood bg-parchment-dim"
+            : "hover:bg-parchment-dim/50";
         return (
           <button
             key={item.id}
@@ -27,11 +38,7 @@ export function ChoiceGrid({
             onClick={() => {
               if (!active) onSelect(item.id);
             }}
-            className={`text-left paper-panel rounded-sm p-4 transition-all ${
-              active
-                ? "ring-2 ring-oxblood bg-parchment-dim"
-                : "hover:bg-parchment-dim/50"
-            }`}
+            className={`text-left paper-panel rounded-sm p-4 transition-all ${selectionClass}`}
           >
             <div className="flex items-baseline justify-between gap-2">
               <h3 className="font-display text-lg text-oxblood-deep">{item.name}</h3>

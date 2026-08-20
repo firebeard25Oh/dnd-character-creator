@@ -46,3 +46,28 @@ body {
   border: 1px solid rgba(43, 36, 32, 0.18);
   box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 8px 24px -12px rgba(43,36,32,0.35);
 }
+
+.paper-panel.choice-card-selected {
+  position: relative;
+  z-index: 1;
+  transform: translateY(-3px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.58), rgba(255,255,255,0.12));
+  border: 2px solid var(--oxblood);
+  box-shadow:
+    0 0 0 2px rgba(122, 46, 46, 0.14),
+    0 18px 30px -12px rgba(43, 36, 32, 0.58),
+    0 6px 12px -8px rgba(43, 36, 32, 0.45),
+    0 1px 0 rgba(255,255,255,0.55) inset;
+}
+
+.paper-panel.choice-card-muted {
+  background: linear-gradient(180deg, rgba(74, 63, 54, 0.1), rgba(74, 63, 54, 0.04));
+  border-color: rgba(43, 36, 32, 0.12);
+  box-shadow: none;
+  filter: grayscale(0.55);
+  opacity: 0.62;
+}
+
+.paper-panel.choice-card-muted:hover {
+  opacity: 0.78;
+}

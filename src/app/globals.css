@@ -71,3 +71,43 @@ body {
 .paper-panel.choice-card-muted:hover {
   opacity: 0.78;
 }
+
+.dice-face {
+  display: inline-flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(43, 36, 32, 0.32);
+  border-radius: 0.25rem;
+  background: rgba(255, 255, 255, 0.3);
+  color: var(--ink);
+  font-family: var(--font-jbmono), monospace;
+  font-size: 0.75rem;
+  box-shadow: 0 2px 4px rgba(43, 36, 32, 0.12);
+}
+
+.dice-dropped {
+  opacity: 0.38;
+  text-decoration: line-through;
+  transform: scale(0.88);
+}
+
+.dice-rolling {
+  animation: dice-tumble 240ms ease-in-out infinite alternate;
+}
+
+@keyframes dice-tumble {
+  from {
+    transform: rotate(-8deg) translateY(1px);
+  }
+  to {
+    transform: rotate(8deg) translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice-rolling {
+    animation: none;
+  }
+}

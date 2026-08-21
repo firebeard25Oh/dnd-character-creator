@@ -19,7 +19,7 @@ export function ChoiceGrid({
   emphasizeSelection?: boolean;
 }) {
   return (
-    <div className="grid sm:grid-cols-2 gap-4">
+    <div className="grid sm:grid-cols-2 auto-rows-fr gap-4">
       {items.map((item) => {
         const active = item.id === selectedId;
         const simplified = emphasizeSelection && !active;

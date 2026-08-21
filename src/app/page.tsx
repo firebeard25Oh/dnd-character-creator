@@ -15,12 +15,17 @@ import { StepTabs, Step } from "@/components/StepTabs";
 import { ChoiceGrid } from "@/components/ChoiceGrid";
 import { AbilityScores } from "@/components/AbilityScores";
 import { CharacterSheet } from "@/components/CharacterSheet";
+import {
+  CharacterDescription,
+  CharacterDetails,
+} from "@/components/CharacterDescription";
+import { StepIntro } from "@/components/StepIntro";
 import { generateFantasyName } from "@/lib/names";
 import { StartingEquipment } from "@/components/StartingEquipment";
 
 const STORAGE_KEY = "dnd-character-creator:draft";
 
-type StepId = "race" | "class" | "background" | "abilities" | "equipment" | "review";
+type StepId = "race" | "class" | "abilities" | "description" | "equipment" | "review";
 
 interface Draft {
   name: string;
@@ -30,6 +35,7 @@ interface Draft {
   chosenSkills: string[];
   scores: Record<AbilityKey, number>;
   abilityMethod: AbilityMethod | null;
+  details: CharacterDetails;
   equipmentSelections: Record<string, string>;
 }
 
@@ -46,8 +52,25 @@ const emptyDraft: Draft = {
   chosenSkills: [],
   scores: emptyScores,
   abilityMethod: null,
+  details: {
+    alignment: "",
+    appearance: "",
+    personality: "",
+    ideal: "",
+    bond: "",
+    flaw: "",
+  },
   equipmentSelections: {},
 };
+
+const stepSequence: StepId[] = [
+  "race",
+  "class",
+  "abilities",
+  "description",
+  "equipment",
+  "review",
+];
 
 export default function Home() {
   const [draft, setDraft] = useState<Draft>(emptyDraft);
@@ -66,6 +89,7 @@ export default function Home() {
         setDraft({
           ...emptyDraft,
           ...saved,
+          details: { ...emptyDraft.details, ...saved.details },
           scores: { ...emptyScores, ...saved.scores },
           equipmentSelections: saved.equipmentSelections ?? {},
         });
@@ -107,8 +131,8 @@ export default function Home() {
   const steps: Step[] = [
     { id: "race", label: "Race", done: !!draft.raceId },
     { id: "class", label: "Class", done: !!draft.classId },
-    { id: "background", label: "Background", done: !!draft.backgroundId },
     { id: "abilities", label: "Ability Scores", done: !!draft.abilityMethod },
+    { id: "description", label: "Describe Character", done: !!draft.backgroundId },
     { id: "equipment", label: "Starting Equipment", done: equipmentComplete },
     {
       id: "review",
@@ -118,6 +142,19 @@ export default function Home() {
   ];
 
   const canReview = !!(race && charClass && background && equipmentComplete);
+  const activeStepIndex = stepSequence.indexOf(activeStep);
+  const canContinue =
+    activeStep === "race"
+      ? !!draft.raceId
+      : activeStep === "class"
+        ? !!draft.classId
+        : activeStep === "abilities"
+          ? !!draft.abilityMethod
+          : activeStep === "description"
+            ? !!draft.backgroundId
+            : activeStep === "equipment"
+              ? equipmentComplete
+              : true;
 
   function toggleSkill(skill: string) {
     if (!charClass) return;
@@ -146,6 +183,7 @@ export default function Home() {
       background: background.name,
       abilityScores: draft.scores,
       skills: allSkills,
+      description: draft.details,
       equipment,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -173,7 +211,21 @@ export default function Home() {
       </header>
 
       <main className="flex-1 grid md:grid-cols-[220px_1fr] gap-6 max-w-6xl w-full mx-auto px-6 py-8">
-        <StepTabs steps={steps} activeId={activeStep} onSelect={(id) => setActiveStep(id as StepId)} />
+        <aside>
+          <StepTabs
+            steps={steps}
+            activeId={activeStep}
+            onSelect={(id) => setActiveStep(id as StepId)}
+          />
+          <a
+            href="https://www.dndbeyond.com/sources/dnd/basic-rules-2014/step-by-step-characters"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-5 hidden border-t border-brass/30 pt-4 font-mono text-[10px] uppercase leading-relaxed tracking-wide text-ink-soft transition-colors hover:text-oxblood md:block"
+          >
+            Guided by the 2014 Basic Rules ↗
+          </a>
+        </aside>
 
         <section>
           <div className="mb-6 grid gap-5 border-b border-brass/40 pb-5 sm:grid-cols-2 sm:gap-0">
@@ -243,55 +295,54 @@ export default function Home() {
           </div>
 
           {activeStep === "race" && (
-            <ChoiceGrid
-              items={RACES.map((r) => ({
-                id: r.id,
-                name: r.name,
-                blurb: r.blurb,
-                meta: [
-                  ...Object.entries(r.bonuses).map(([k, v]) => `+${v} ${k.toUpperCase()}`),
-                  `Speed ${r.speed} ft.`,
-                ],
-              }))}
-              selectedId={draft.raceId}
-              onSelect={(id) => setDraft((d) => ({ ...d, raceId: id }))}
-              emphasizeSelection
-            />
+            <div>
+              <StepIntro step={1} title="Choose a Race">
+                Your race shapes your adventurer&apos;s identity, natural talents, speed, and
+                inherited traits. Choose the story that excites you, whether or not it follows a
+                familiar archetype.
+              </StepIntro>
+              <ChoiceGrid
+                items={RACES.map((r) => ({
+                  id: r.id,
+                  name: r.name,
+                  blurb: r.blurb,
+                  meta: [
+                    ...Object.entries(r.bonuses).map(([k, v]) => `+${v} ${k.toUpperCase()}`),
+                    `Speed ${r.speed} ft.`,
+                  ],
+                }))}
+                selectedId={draft.raceId}
+                onSelect={(id) => setDraft((d) => ({ ...d, raceId: id }))}
+                emphasizeSelection
+              />
+            </div>
           )}
 
           {activeStep === "class" && (
-            <ChoiceGrid
-              items={CLASSES.map((c) => ({
-                id: c.id,
-                name: c.name,
-                blurb: c.blurb,
-                meta: [`Hit die d${c.hitDie}`, `Choose ${c.numSkillChoices} skills`],
-              }))}
-              selectedId={draft.classId}
-              onSelect={(id) =>
-                setDraft((d) => ({
-                  ...d,
-                  classId: id,
-                  chosenSkills: [],
-                  equipmentSelections: {},
-                }))
-              }
-              emphasizeSelection
-            />
-          )}
-
-          {activeStep === "background" && (
-            <ChoiceGrid
-              items={BACKGROUNDS.map((b) => ({
-                id: b.id,
-                name: b.name,
-                blurb: b.blurb,
-                meta: b.skills,
-              }))}
-              selectedId={draft.backgroundId}
-              onSelect={(id) => setDraft((d) => ({ ...d, backgroundId: id }))}
-              emphasizeSelection
-            />
+            <div>
+              <StepIntro step={2} title="Choose a Class">
+                Your class is your adventuring vocation. It determines your core capabilities,
+                starting toughness, saving throws, and the skills you can train.
+              </StepIntro>
+              <ChoiceGrid
+                items={CLASSES.map((c) => ({
+                  id: c.id,
+                  name: c.name,
+                  blurb: c.blurb,
+                  meta: [`Hit die d${c.hitDie}`, `Choose ${c.numSkillChoices} skills`],
+                }))}
+                selectedId={draft.classId}
+                onSelect={(id) =>
+                  setDraft((d) => ({
+                    ...d,
+                    classId: id,
+                    chosenSkills: [],
+                    equipmentSelections: {},
+                  }))
+                }
+                emphasizeSelection
+              />
+            </div>
           )}
 
           {activeStep === "abilities" && (
@@ -304,7 +355,7 @@ export default function Home() {
             />
           )}
 
-          {charClass && (activeStep === "class" || activeStep === "abilities") && (
+          {charClass && activeStep === "class" && (
             <div className="paper-panel rounded-sm p-4 mt-6">
               <h3 className="font-display text-sm uppercase tracking-wide text-oxblood-deep mb-2">
                 Choose {charClass.numSkillChoices} class skills
@@ -331,6 +382,17 @@ export default function Home() {
                 {draft.chosenSkills.length} / {charClass.numSkillChoices} selected
               </p>
             </div>
+          )}
+
+          {activeStep === "description" && (
+            <CharacterDescription
+              backgroundId={draft.backgroundId}
+              details={draft.details}
+              onBackgroundChange={(backgroundId) =>
+                setDraft((current) => ({ ...current, backgroundId }))
+              }
+              onDetailsChange={(details) => setDraft((current) => ({ ...current, details }))}
+            />
           )}
 
           {activeStep === "equipment" && (
@@ -361,6 +423,7 @@ export default function Home() {
                   background={background!}
                   scores={draft.scores}
                   skills={allSkills}
+                  details={draft.details}
                   equipment={equipment}
                 />
                 <button
@@ -376,6 +439,27 @@ export default function Home() {
                 character sheet.
               </p>
             ))}
+
+          {activeStep !== "review" && (
+            <div className="mt-8 flex items-center justify-between border-t border-brass/30 pt-5">
+              <button
+                type="button"
+                onClick={() => setActiveStep(stepSequence[activeStepIndex - 1])}
+                disabled={activeStepIndex === 0}
+                className="font-display text-xs uppercase tracking-wide text-ink-soft hover:text-oxblood disabled:invisible"
+              >
+                ← Previous
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveStep(stepSequence[activeStepIndex + 1])}
+                disabled={!canContinue}
+                className="rounded-sm bg-oxblood px-5 py-2.5 font-display text-xs uppercase tracking-wide text-parchment transition-colors hover:bg-oxblood-deep disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Continue to {steps[activeStepIndex + 1]?.label}
+              </button>
+            </div>
+          )}
         </section>
       </main>
     </div>

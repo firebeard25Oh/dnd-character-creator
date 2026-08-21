@@ -179,6 +179,7 @@ export default function Home() {
               }))}
               selectedId={draft.classId}
               onSelect={(id) => setDraft((d) => ({ ...d, classId: id, chosenSkills: [] }))}
+              emphasizeSelection
             />
           )}
 

@@ -193,6 +193,7 @@ export default function Home() {
               }))}
               selectedId={draft.backgroundId}
               onSelect={(id) => setDraft((d) => ({ ...d, backgroundId: id }))}
+              emphasizeSelection
             />
           )}
 

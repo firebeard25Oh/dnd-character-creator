@@ -6,18 +6,21 @@ import {
   AbilityKey,
   AbilityMethod,
   BACKGROUNDS,
+  CLASS_STARTING_EQUIPMENT,
   CLASSES,
   RACES,
+  resolveStartingEquipment,
 } from "@/lib/data";
 import { StepTabs, Step } from "@/components/StepTabs";
 import { ChoiceGrid } from "@/components/ChoiceGrid";
 import { AbilityScores } from "@/components/AbilityScores";
 import { CharacterSheet } from "@/components/CharacterSheet";
 import { generateFantasyName } from "@/lib/names";
+import { StartingEquipment } from "@/components/StartingEquipment";
 
 const STORAGE_KEY = "dnd-character-creator:draft";
 
-type StepId = "race" | "class" | "background" | "abilities" | "review";
+type StepId = "race" | "class" | "background" | "abilities" | "equipment" | "review";
 
 interface Draft {
   name: string;
@@ -27,6 +30,7 @@ interface Draft {
   chosenSkills: string[];
   scores: Record<AbilityKey, number>;
   abilityMethod: AbilityMethod | null;
+  equipmentSelections: Record<string, string>;
 }
 
 const emptyScores = ABILITY_ORDER.reduce(
@@ -42,6 +46,7 @@ const emptyDraft: Draft = {
   chosenSkills: [],
   scores: emptyScores,
   abilityMethod: null,
+  equipmentSelections: {},
 };
 
 export default function Home() {
@@ -55,8 +60,16 @@ export default function Home() {
     // exactly what effects are for.
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (raw) setDraft(JSON.parse(raw));
+      if (raw) {
+        const saved = JSON.parse(raw) as Partial<Draft>;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setDraft({
+          ...emptyDraft,
+          ...saved,
+          scores: { ...emptyScores, ...saved.scores },
+          equipmentSelections: saved.equipmentSelections ?? {},
+        });
+      }
     } catch {
       // ignore corrupt/missing draft
     }
@@ -74,6 +87,19 @@ export default function Home() {
     () => BACKGROUNDS.find((b) => b.id === draft.backgroundId) ?? null,
     [draft.backgroundId]
   );
+  const classEquipment = charClass ? CLASS_STARTING_EQUIPMENT[charClass.id] : null;
+  const equipment = useMemo(
+    () =>
+      resolveStartingEquipment(
+        draft.classId,
+        draft.backgroundId,
+        draft.equipmentSelections
+      ),
+    [draft.classId, draft.backgroundId, draft.equipmentSelections]
+  );
+  const equipmentComplete =
+    !!classEquipment &&
+    classEquipment.choices.every((choice) => !!draft.equipmentSelections[choice.id]);
 
   const backgroundSkills = background?.skills ?? [];
   const allSkills = Array.from(new Set([...backgroundSkills, ...draft.chosenSkills]));
@@ -83,10 +109,15 @@ export default function Home() {
     { id: "class", label: "Class", done: !!draft.classId },
     { id: "background", label: "Background", done: !!draft.backgroundId },
     { id: "abilities", label: "Ability Scores", done: !!draft.abilityMethod },
-    { id: "review", label: "Character Sheet", done: !!(race && charClass && background) },
+    { id: "equipment", label: "Starting Equipment", done: equipmentComplete },
+    {
+      id: "review",
+      label: "Character Sheet",
+      done: !!(race && charClass && background && equipmentComplete),
+    },
   ];
 
-  const canReview = !!(race && charClass && background);
+  const canReview = !!(race && charClass && background && equipmentComplete);
 
   function toggleSkill(skill: string) {
     if (!charClass) return;
@@ -115,6 +146,7 @@ export default function Home() {
       background: background.name,
       abilityScores: draft.scores,
       skills: allSkills,
+      equipment,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -200,7 +232,14 @@ export default function Home() {
                 meta: [`Hit die d${c.hitDie}`, `Choose ${c.numSkillChoices} skills`],
               }))}
               selectedId={draft.classId}
-              onSelect={(id) => setDraft((d) => ({ ...d, classId: id, chosenSkills: [] }))}
+              onSelect={(id) =>
+                setDraft((d) => ({
+                  ...d,
+                  classId: id,
+                  chosenSkills: [],
+                  equipmentSelections: {},
+                }))
+              }
               emphasizeSelection
             />
           )}
@@ -258,6 +297,24 @@ export default function Home() {
             </div>
           )}
 
+          {activeStep === "equipment" && (
+            <StartingEquipment
+              charClass={charClass}
+              background={background}
+              equipment={classEquipment}
+              selections={draft.equipmentSelections}
+              onSelect={(choiceId, optionId) =>
+                setDraft((d) => ({
+                  ...d,
+                  equipmentSelections: {
+                    ...d.equipmentSelections,
+                    [choiceId]: optionId,
+                  },
+                }))
+              }
+            />
+          )}
+
           {activeStep === "review" &&
             (canReview ? (
               <div>
@@ -268,6 +325,7 @@ export default function Home() {
                   background={background!}
                   scores={draft.scores}
                   skills={allSkills}
+                  equipment={equipment}
                 />
                 <button
                   onClick={downloadCharacter}
@@ -278,7 +336,8 @@ export default function Home() {
               </div>
             ) : (
               <p className="text-ink-soft italic">
-                Finish choosing a race, class, and background to see your character sheet.
+                Finish choosing a race, class, background, and starting equipment to see your
+                character sheet.
               </p>
             ))}
         </section>

@@ -5,6 +5,7 @@ import {
   ABILITY_ORDER,
   AbilityKey,
   AbilityMethod,
+  BACKGROUNDS,
   CLASSES,
   RACES,
 } from "@/lib/data";
@@ -70,9 +71,9 @@ export default function Home() {
     // exactly what effects are for.
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (raw) {
         const saved = JSON.parse(raw) as Partial<Draft>;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDraft({
           ...emptyDraft,
           ...saved,

@@ -58,7 +58,7 @@ function makeScores(values: number[], assignments: number[]) {
 }
 
 function getInitialAssignments(
-  method: AbilityMethod,
+  method: AbilityMethod | null,
   scores: Record<AbilityKey, number>
 ) {
   if (method !== "standard") return [...INITIAL_ASSIGNMENTS];
@@ -139,7 +139,7 @@ export function AbilityScores({
 }: {
   scores: Record<AbilityKey, number>;
   setScores: (scores: Record<AbilityKey, number>) => void;
-  method: AbilityMethod;
+  method: AbilityMethod | null;
   setMethod: (method: AbilityMethod) => void;
   race: Race | null;
 }) {

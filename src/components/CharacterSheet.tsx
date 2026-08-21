@@ -10,6 +10,7 @@ import {
   abilityModifier,
   formatModifier,
 } from "@/lib/data";
+import type { CharacterDetails } from "@/components/CharacterDescription";
 
 export function CharacterSheet({
   name,
@@ -18,6 +19,7 @@ export function CharacterSheet({
   background,
   scores,
   skills,
+  details,
 }: {
   name: string;
   race: Race;
@@ -25,6 +27,7 @@ export function CharacterSheet({
   background: Background;
   scores: Record<AbilityKey, number>;
   skills: string[];
+  details: CharacterDetails;
 }) {
   const conMod = abilityModifier(scores.con + (race.bonuses.con ?? 0));
   const hp = charClass.hitDie + conMod;
@@ -105,6 +108,54 @@ export function CharacterSheet({
           </ul>
         </div>
       </div>
+
+      {(details.alignment ||
+        details.appearance ||
+        details.personality ||
+        details.ideal ||
+        details.bond ||
+        details.flaw) && (
+        <div className="mt-6 border-t border-brass/40 pt-5">
+          <h3 className="font-display text-sm uppercase tracking-wide text-oxblood-deep">
+            Character details
+          </h3>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            {details.alignment && (
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-wide text-brass">
+                  Alignment
+                </p>
+                <p className="mt-1 text-sm text-ink">{details.alignment}</p>
+              </div>
+            )}
+            {details.appearance && (
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-wide text-brass">
+                  Appearance
+                </p>
+                <p className="mt-1 text-sm text-ink">{details.appearance}</p>
+              </div>
+            )}
+            {(
+              [
+                ["personality", "Personality traits"],
+                ["ideal", "Ideal"],
+                ["bond", "Bond"],
+                ["flaw", "Flaw"],
+              ] as const
+            ).map(([field, label]) =>
+              details[field] ? (
+                <div key={field}>
+                  <p className="font-mono text-[10px] uppercase tracking-wide text-brass">
+                    {label}
+                  </p>
+                  <p className="mt-1 text-sm text-ink">{details[field]}</p>
+                </div>
+              ) : null
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

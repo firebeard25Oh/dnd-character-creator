@@ -216,14 +216,14 @@ export function AbilityScores({
     <div>
       <div className="mb-6">
         <p className="font-display text-xs uppercase tracking-[0.18em] text-brass">
-          Generate your scores
+          Step 3
         </p>
         <h2 className="mt-1 font-display text-2xl text-oxblood-deep">
-          Choose an ability score method
+          Determine Ability Scores
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-ink-soft">
-          Determine your six starting scores with one of these three methods. You can switch
-          methods at any time.
+          Your six abilities describe your character&apos;s physical and mental qualities. Choose
+          a generation method, assign the results, then apply the bonuses from your race.
         </p>
       </div>
 

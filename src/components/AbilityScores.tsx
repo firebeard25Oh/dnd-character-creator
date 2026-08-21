@@ -140,7 +140,7 @@ export function AbilityScores({
   scores: Record<AbilityKey, number>;
   setScores: (scores: Record<AbilityKey, number>) => void;
   method: AbilityMethod | null;
-  setMethod: (method: AbilityMethod) => void;
+  setMethod: (method: AbilityMethod | null) => void;
   race: Race | null;
 }) {
   const [assignments, setAssignments] = useState(() =>
@@ -177,7 +177,20 @@ export function AbilityScores({
   }, [isRolling, setScores]);
 
   function chooseMethod(nextMethod: AbilityMethod) {
-    if (nextMethod === method) return;
+    if (nextMethod === method) {
+      setMethod(null);
+      setAssignments(INITIAL_ASSIGNMENTS);
+      setRandomRolls([]);
+      setIsRolling(false);
+      setScores(
+        ABILITY_ORDER.reduce(
+          (next, key) => ({ ...next, [key]: POINT_BUY_MIN }),
+          {} as Record<AbilityKey, number>
+        )
+      );
+      return;
+    }
+
     setMethod(nextMethod);
     setAssignments(INITIAL_ASSIGNMENTS);
 

@@ -15,7 +15,7 @@ export function ChoiceGrid({
 }: {
   items: ChoiceCardData[];
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | null) => void;
   emphasizeSelection?: boolean;
 }) {
   return (
@@ -40,9 +40,7 @@ export function ChoiceGrid({
           <button
             key={item.id}
             aria-pressed={active}
-            onClick={() => {
-              if (!active) onSelect(item.id);
-            }}
+            onClick={() => onSelect(active ? null : item.id)}
             className={`h-full paper-panel rounded-sm p-4 transition-all ${selectionClass} ${
               simplified ? "flex flex-col items-center justify-center text-center" : "text-left"
             }`}

@@ -144,34 +144,60 @@ export default function Home() {
         <StepTabs steps={steps} activeId={activeStep} onSelect={(id) => setActiveStep(id as StepId)} />
 
         <section>
-          <div className="mb-6">
-            <label
-              htmlFor="character-name"
-              className="block font-display text-xs uppercase tracking-wide text-ink-soft mb-1"
-            >
-              Character name
-            </label>
-            <div className="flex items-end gap-3">
+          <div className="mb-6 grid gap-5 border-b border-brass/40 pb-5 sm:grid-cols-2 sm:gap-0">
+            <div className="sm:pr-6">
+              <label
+                htmlFor="character-name"
+                className="mb-1 block font-display text-xs uppercase tracking-wide text-ink-soft"
+              >
+                Character name
+              </label>
               <input
                 id="character-name"
                 value={draft.name}
                 onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
                 placeholder="e.g. Serrin Nightbrook"
-                className="min-w-0 flex-1 bg-transparent border-b-2 border-ink-soft/30 focus:border-oxblood outline-none font-display text-xl py-1 placeholder:text-ink-soft/40"
+                className="w-full min-w-0 border-b-2 border-ink-soft/30 bg-transparent py-1 font-display text-xl outline-none placeholder:text-ink-soft/40 focus:border-oxblood"
               />
               <button
                 type="button"
                 onClick={() =>
                   setDraft((d) => ({ ...d, name: generateFantasyName(d.name) }))
                 }
-                className="shrink-0 rounded-sm border border-brass/70 px-3 py-2 font-mono text-xs uppercase tracking-wide text-oxblood-deep transition-colors hover:bg-brass/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood"
+                className="mt-2 rounded-sm border border-ink-soft/20 px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wide text-ink-soft/60 transition-colors hover:border-brass/50 hover:bg-brass/5 hover:text-oxblood-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood"
               >
-                <span aria-hidden="true" className="mr-1.5 text-brass">
+                <span aria-hidden="true" className="mr-1 text-brass/70">
                   ✦
                 </span>
                 Generate name
               </button>
             </div>
+            <dl className="grid grid-cols-2 gap-4 sm:border-l sm:border-brass/30 sm:pl-6">
+              <div>
+                <dt className="font-display text-xs uppercase tracking-wide text-ink-soft">
+                  Character race
+                </dt>
+                <dd
+                  className={`mt-2 font-display text-lg ${
+                    race ? "text-oxblood-deep" : "text-ink-soft/40"
+                  }`}
+                >
+                  {race?.name ?? "Not chosen"}
+                </dd>
+              </div>
+              <div>
+                <dt className="font-display text-xs uppercase tracking-wide text-ink-soft">
+                  Character class
+                </dt>
+                <dd
+                  className={`mt-2 font-display text-lg ${
+                    charClass ? "text-oxblood-deep" : "text-ink-soft/40"
+                  }`}
+                >
+                  {charClass?.name ?? "Not chosen"}
+                </dd>
+              </div>
+            </dl>
           </div>
 
           {activeStep === "race" && (

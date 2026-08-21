@@ -13,6 +13,7 @@ import { StepTabs, Step } from "@/components/StepTabs";
 import { ChoiceGrid } from "@/components/ChoiceGrid";
 import { AbilityScores } from "@/components/AbilityScores";
 import { CharacterSheet } from "@/components/CharacterSheet";
+import { generateFantasyName } from "@/lib/names";
 
 const STORAGE_KEY = "dnd-character-creator:draft";
 
@@ -144,15 +145,33 @@ export default function Home() {
 
         <section>
           <div className="mb-6">
-            <label className="block font-display text-xs uppercase tracking-wide text-ink-soft mb-1">
+            <label
+              htmlFor="character-name"
+              className="block font-display text-xs uppercase tracking-wide text-ink-soft mb-1"
+            >
               Character name
             </label>
-            <input
-              value={draft.name}
-              onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-              placeholder="e.g. Serrin Nightbrook"
-              className="w-full bg-transparent border-b-2 border-ink-soft/30 focus:border-oxblood outline-none font-display text-xl py-1 placeholder:text-ink-soft/40"
-            />
+            <div className="flex items-end gap-3">
+              <input
+                id="character-name"
+                value={draft.name}
+                onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                placeholder="e.g. Serrin Nightbrook"
+                className="min-w-0 flex-1 bg-transparent border-b-2 border-ink-soft/30 focus:border-oxblood outline-none font-display text-xl py-1 placeholder:text-ink-soft/40"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setDraft((d) => ({ ...d, name: generateFantasyName(d.name) }))
+                }
+                className="shrink-0 rounded-sm border border-brass/70 px-3 py-2 font-mono text-xs uppercase tracking-wide text-oxblood-deep transition-colors hover:bg-brass/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood"
+              >
+                <span aria-hidden="true" className="mr-1.5 text-brass">
+                  ✦
+                </span>
+                Generate name
+              </button>
+            </div>
           </div>
 
           {activeStep === "race" && (

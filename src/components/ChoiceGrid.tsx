@@ -22,6 +22,7 @@ export function ChoiceGrid({
     <div className="grid sm:grid-cols-2 gap-4">
       {items.map((item) => {
         const active = item.id === selectedId;
+        const simplified = emphasizeSelection && !active;
         const selectionClass = emphasizeSelection
           ? active
             ? "choice-card-selected"
@@ -38,14 +39,21 @@ export function ChoiceGrid({
             onClick={() => {
               if (!active) onSelect(item.id);
             }}
-            className={`text-left paper-panel rounded-sm p-4 transition-all ${selectionClass}`}
+            className={`paper-panel rounded-sm p-4 transition-all ${selectionClass} ${
+              simplified ? "min-h-36 flex flex-col items-center justify-center text-center" : "text-left"
+            }`}
           >
-            <div className="flex items-baseline justify-between gap-2">
-              <h3 className="font-display text-lg text-oxblood-deep">{item.name}</h3>
-              {active && <span className="font-mono text-xs text-forest">chosen</span>}
+            <div className={simplified ? "" : "flex items-baseline justify-between gap-2"}>
+              <h3
+                className={`font-display text-oxblood-deep ${
+                  simplified ? "text-2xl uppercase tracking-wide" : "text-lg"
+                }`}
+              >
+                {item.name}
+              </h3>
             </div>
             <p className="mt-1 text-sm text-ink-soft italic">{item.blurb}</p>
-            {item.meta && item.meta.length > 0 && (
+            {!simplified && item.meta && item.meta.length > 0 && (
               <ul className="mt-3 space-y-1">
                 {item.meta.map((m, i) => (
                   <li key={i} className="text-xs font-mono text-ink-soft flex gap-2">

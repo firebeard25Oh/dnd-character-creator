@@ -1,4 +1,5 @@
 export type AbilityKey = "str" | "dex" | "con" | "int" | "wis" | "cha";
+export type AbilityMethod = "standard" | "random" | "point-buy";
 
 export const ABILITY_LABELS: Record<AbilityKey, string> = {
   str: "Strength",

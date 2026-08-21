@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ABILITY_ORDER,
   AbilityKey,
+  AbilityMethod,
   BACKGROUNDS,
   CLASSES,
   RACES,
@@ -24,6 +25,7 @@ interface Draft {
   backgroundId: string | null;
   chosenSkills: string[];
   scores: Record<AbilityKey, number>;
+  abilityMethod: AbilityMethod;
 }
 
 const emptyScores = ABILITY_ORDER.reduce(
@@ -38,6 +40,7 @@ const emptyDraft: Draft = {
   backgroundId: null,
   chosenSkills: [],
   scores: emptyScores,
+  abilityMethod: "point-buy",
 };
 
 export default function Home() {
@@ -201,6 +204,8 @@ export default function Home() {
             <AbilityScores
               scores={draft.scores}
               setScores={(scores) => setDraft((d) => ({ ...d, scores }))}
+              method={draft.abilityMethod ?? "point-buy"}
+              setMethod={(abilityMethod) => setDraft((d) => ({ ...d, abilityMethod }))}
               race={race}
             />
           )}

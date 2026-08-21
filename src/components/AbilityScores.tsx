@@ -57,6 +57,18 @@ function makeScores(values: number[], assignments: number[]) {
   );
 }
 
+function getInitialAssignments(
+  method: AbilityMethod,
+  scores: Record<AbilityKey, number>
+) {
+  if (method !== "standard") return [...INITIAL_ASSIGNMENTS];
+  const savedAssignments = ABILITY_ORDER.map((key) => STANDARD_ARRAY.indexOf(scores[key]));
+  return savedAssignments.every((index) => index >= 0) &&
+    new Set(savedAssignments).size === STANDARD_ARRAY.length
+    ? savedAssignments
+    : [...INITIAL_ASSIGNMENTS];
+}
+
 function rollAbility(): DiceRoll {
   const dice = Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1);
   const lowest = Math.min(...dice);
@@ -131,7 +143,9 @@ export function AbilityScores({
   setMethod: (method: AbilityMethod) => void;
   race: Race | null;
 }) {
-  const [assignments, setAssignments] = useState(INITIAL_ASSIGNMENTS);
+  const [assignments, setAssignments] = useState(() =>
+    getInitialAssignments(method, scores)
+  );
   const [randomRolls, setRandomRolls] = useState<DiceRoll[]>([]);
   const [randomValues, setRandomValues] = useState(() =>
     ABILITY_ORDER.map((key) => scores[key])

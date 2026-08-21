@@ -159,18 +159,28 @@ export default function Home() {
                 placeholder="e.g. Serrin Nightbrook"
                 className="w-full min-w-0 border-b-2 border-ink-soft/30 bg-transparent py-1 font-display text-xl outline-none placeholder:text-ink-soft/40 focus:border-oxblood"
               />
-              <button
-                type="button"
-                onClick={() =>
-                  setDraft((d) => ({ ...d, name: generateFantasyName(d.name) }))
-                }
-                className="mt-2 rounded-sm border border-ink-soft/20 px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wide text-ink-soft/60 transition-colors hover:border-brass/50 hover:bg-brass/5 hover:text-oxblood-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood"
-              >
-                <span aria-hidden="true" className="mr-1 text-brass/70">
-                  ✦
-                </span>
-                Generate name
-              </button>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((d) => ({ ...d, name: generateFantasyName(d.name) }))
+                  }
+                  className="shrink-0 rounded-sm border border-ink-soft/20 px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wide text-ink-soft/60 transition-colors hover:border-brass/50 hover:bg-brass/5 hover:text-oxblood-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood"
+                >
+                  <span aria-hidden="true" className="mr-1 text-brass/70">
+                    ✦
+                  </span>
+                  Generate name
+                </button>
+                {background && (
+                  <p
+                    aria-label={`Character background: ${background.name}`}
+                    className="text-right font-display text-sm uppercase tracking-wide text-oxblood-deep"
+                  >
+                    {background.name}
+                  </p>
+                )}
+              </div>
             </div>
             <dl className="grid grid-cols-2 gap-4 sm:border-l sm:border-brass/30 sm:pl-6">
               <div>

@@ -6,8 +6,10 @@ import {
   AbilityKey,
   AbilityMethod,
   BACKGROUNDS,
+  CLASS_STARTING_EQUIPMENT,
   CLASSES,
   RACES,
+  resolveStartingEquipment,
 } from "@/lib/data";
 import { StepTabs, Step } from "@/components/StepTabs";
 import { ChoiceGrid } from "@/components/ChoiceGrid";
@@ -19,10 +21,11 @@ import {
 } from "@/components/CharacterDescription";
 import { StepIntro } from "@/components/StepIntro";
 import { generateFantasyName } from "@/lib/names";
+import { StartingEquipment } from "@/components/StartingEquipment";
 
 const STORAGE_KEY = "dnd-character-creator:draft";
 
-type StepId = "race" | "class" | "abilities" | "description" | "review";
+type StepId = "race" | "class" | "abilities" | "description" | "equipment" | "review";
 
 interface Draft {
   name: string;
@@ -31,8 +34,9 @@ interface Draft {
   backgroundId: string | null;
   chosenSkills: string[];
   scores: Record<AbilityKey, number>;
-  abilityMethod: AbilityMethod;
+  abilityMethod: AbilityMethod | null;
   details: CharacterDetails;
+  equipmentSelections: Record<string, string>;
 }
 
 const emptyScores = ABILITY_ORDER.reduce(
@@ -47,7 +51,7 @@ const emptyDraft: Draft = {
   backgroundId: null,
   chosenSkills: [],
   scores: emptyScores,
-  abilityMethod: "point-buy",
+  abilityMethod: null,
   details: {
     alignment: "",
     appearance: "",
@@ -56,9 +60,17 @@ const emptyDraft: Draft = {
     bond: "",
     flaw: "",
   },
+  equipmentSelections: {},
 };
 
-const stepSequence: StepId[] = ["race", "class", "abilities", "description", "review"];
+const stepSequence: StepId[] = [
+  "race",
+  "class",
+  "abilities",
+  "description",
+  "equipment",
+  "review",
+];
 
 export default function Home() {
   const [draft, setDraft] = useState<Draft>(emptyDraft);
@@ -78,6 +90,8 @@ export default function Home() {
           ...emptyDraft,
           ...saved,
           details: { ...emptyDraft.details, ...saved.details },
+          scores: { ...emptyScores, ...saved.scores },
+          equipmentSelections: saved.equipmentSelections ?? {},
         });
       }
     } catch {
@@ -97,6 +111,19 @@ export default function Home() {
     () => BACKGROUNDS.find((b) => b.id === draft.backgroundId) ?? null,
     [draft.backgroundId]
   );
+  const classEquipment = charClass ? CLASS_STARTING_EQUIPMENT[charClass.id] : null;
+  const equipment = useMemo(
+    () =>
+      resolveStartingEquipment(
+        draft.classId,
+        draft.backgroundId,
+        draft.equipmentSelections
+      ),
+    [draft.classId, draft.backgroundId, draft.equipmentSelections]
+  );
+  const equipmentComplete =
+    !!classEquipment &&
+    classEquipment.choices.every((choice) => !!draft.equipmentSelections[choice.id]);
 
   const backgroundSkills = background?.skills ?? [];
   const allSkills = Array.from(new Set([...backgroundSkills, ...draft.chosenSkills]));
@@ -104,21 +131,30 @@ export default function Home() {
   const steps: Step[] = [
     { id: "race", label: "Race", done: !!draft.raceId },
     { id: "class", label: "Class", done: !!draft.classId },
-    { id: "abilities", label: "Ability Scores", done: true },
+    { id: "abilities", label: "Ability Scores", done: !!draft.abilityMethod },
     { id: "description", label: "Describe Character", done: !!draft.backgroundId },
-    { id: "review", label: "Character Sheet", done: !!(race && charClass && background) },
+    { id: "equipment", label: "Starting Equipment", done: equipmentComplete },
+    {
+      id: "review",
+      label: "Character Sheet",
+      done: !!(race && charClass && background && equipmentComplete),
+    },
   ];
 
-  const canReview = !!(race && charClass && background);
+  const canReview = !!(race && charClass && background && equipmentComplete);
   const activeStepIndex = stepSequence.indexOf(activeStep);
   const canContinue =
     activeStep === "race"
       ? !!draft.raceId
       : activeStep === "class"
         ? !!draft.classId
-        : activeStep === "description"
-          ? !!draft.backgroundId
-          : true;
+        : activeStep === "abilities"
+          ? !!draft.abilityMethod
+          : activeStep === "description"
+            ? !!draft.backgroundId
+            : activeStep === "equipment"
+              ? equipmentComplete
+              : true;
 
   function toggleSkill(skill: string) {
     if (!charClass) return;
@@ -148,6 +184,7 @@ export default function Home() {
       abilityScores: draft.scores,
       skills: allSkills,
       description: draft.details,
+      equipment,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -191,34 +228,70 @@ export default function Home() {
         </aside>
 
         <section>
-          <div className="mb-6">
-            <label
-              htmlFor="character-name"
-              className="block font-display text-xs uppercase tracking-wide text-ink-soft mb-1"
-            >
-              Character name
-            </label>
-            <div className="flex items-end gap-3">
+          <div className="mb-6 grid gap-5 border-b border-brass/40 pb-5 sm:grid-cols-2 sm:gap-0">
+            <div className="sm:pr-6">
+              <label
+                htmlFor="character-name"
+                className="mb-1 block font-display text-xs uppercase tracking-wide text-ink-soft"
+              >
+                Character name
+              </label>
               <input
                 id="character-name"
                 value={draft.name}
                 onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
                 placeholder="e.g. Serrin Nightbrook"
-                className="min-w-0 flex-1 bg-transparent border-b-2 border-ink-soft/30 focus:border-oxblood outline-none font-display text-xl py-1 placeholder:text-ink-soft/40"
+                className="w-full min-w-0 border-b-2 border-ink-soft/30 bg-transparent py-1 font-display text-xl outline-none placeholder:text-ink-soft/40 focus:border-oxblood"
               />
-              <button
-                type="button"
-                onClick={() =>
-                  setDraft((d) => ({ ...d, name: generateFantasyName(d.name) }))
-                }
-                className="shrink-0 rounded-sm border border-brass/70 px-3 py-2 font-mono text-xs uppercase tracking-wide text-oxblood-deep transition-colors hover:bg-brass/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood"
-              >
-                <span aria-hidden="true" className="mr-1.5 text-brass">
-                  ✦
-                </span>
-                Generate name
-              </button>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((d) => ({ ...d, name: generateFantasyName(d.name) }))
+                  }
+                  className="shrink-0 rounded-sm border border-ink-soft/20 px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wide text-ink-soft/60 transition-colors hover:border-brass/50 hover:bg-brass/5 hover:text-oxblood-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood"
+                >
+                  <span aria-hidden="true" className="mr-1 text-brass/70">
+                    ✦
+                  </span>
+                  Generate name
+                </button>
+                {background && (
+                  <p
+                    aria-label={`Character background: ${background.name}`}
+                    className="text-right font-display text-sm uppercase tracking-wide text-oxblood-deep"
+                  >
+                    {background.name}
+                  </p>
+                )}
+              </div>
             </div>
+            <dl className="grid grid-cols-2 gap-4 sm:border-l sm:border-brass/30 sm:pl-6">
+              <div>
+                <dt className="font-display text-xs uppercase tracking-wide text-ink-soft">
+                  Character race
+                </dt>
+                <dd
+                  className={`mt-2 font-display text-lg ${
+                    race ? "text-oxblood-deep" : "text-ink-soft/40"
+                  }`}
+                >
+                  {race?.name ?? "Not chosen"}
+                </dd>
+              </div>
+              <div>
+                <dt className="font-display text-xs uppercase tracking-wide text-ink-soft">
+                  Character class
+                </dt>
+                <dd
+                  className={`mt-2 font-display text-lg ${
+                    charClass ? "text-oxblood-deep" : "text-ink-soft/40"
+                  }`}
+                >
+                  {charClass?.name ?? "Not chosen"}
+                </dd>
+              </div>
+            </dl>
           </div>
 
           {activeStep === "race" && (
@@ -260,7 +333,12 @@ export default function Home() {
                 }))}
                 selectedId={draft.classId}
                 onSelect={(id) =>
-                  setDraft((d) => ({ ...d, classId: id, chosenSkills: [] }))
+                  setDraft((d) => ({
+                    ...d,
+                    classId: id,
+                    chosenSkills: [],
+                    equipmentSelections: {},
+                  }))
                 }
                 emphasizeSelection
               />
@@ -271,7 +349,7 @@ export default function Home() {
             <AbilityScores
               scores={draft.scores}
               setScores={(scores) => setDraft((d) => ({ ...d, scores }))}
-              method={draft.abilityMethod ?? "point-buy"}
+              method={draft.abilityMethod ?? null}
               setMethod={(abilityMethod) => setDraft((d) => ({ ...d, abilityMethod }))}
               race={race}
             />
@@ -317,6 +395,24 @@ export default function Home() {
             />
           )}
 
+          {activeStep === "equipment" && (
+            <StartingEquipment
+              charClass={charClass}
+              background={background}
+              equipment={classEquipment}
+              selections={draft.equipmentSelections}
+              onSelect={(choiceId, optionId) =>
+                setDraft((d) => ({
+                  ...d,
+                  equipmentSelections: {
+                    ...d.equipmentSelections,
+                    [choiceId]: optionId,
+                  },
+                }))
+              }
+            />
+          )}
+
           {activeStep === "review" &&
             (canReview ? (
               <div>
@@ -328,6 +424,7 @@ export default function Home() {
                   scores={draft.scores}
                   skills={allSkills}
                   details={draft.details}
+                  equipment={equipment}
                 />
                 <button
                   onClick={downloadCharacter}
@@ -338,7 +435,8 @@ export default function Home() {
               </div>
             ) : (
               <p className="text-ink-soft italic">
-                Finish choosing a race, class, and background to see your character sheet.
+                Finish choosing a race, class, background, and starting equipment to see your
+                character sheet.
               </p>
             ))}
 

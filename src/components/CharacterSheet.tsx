@@ -20,6 +20,7 @@ export function CharacterSheet({
   scores,
   skills,
   details,
+  equipment,
 }: {
   name: string;
   race: Race;
@@ -28,6 +29,7 @@ export function CharacterSheet({
   scores: Record<AbilityKey, number>;
   skills: string[];
   details: CharacterDetails;
+  equipment: string[];
 }) {
   const conMod = abilityModifier(scores.con + (race.bonuses.con ?? 0));
   const hp = charClass.hitDie + conMod;
@@ -76,7 +78,7 @@ export function CharacterSheet({
         })}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
+      <div className="grid md:grid-cols-3 gap-6 mt-6">
         <div>
           <h3 className="font-display text-sm uppercase tracking-wide text-oxblood-deep mb-2">
             Skill proficiencies
@@ -105,6 +107,19 @@ export function CharacterSheet({
               <span className="text-forest">◆</span>
               {background.feature}
             </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-display text-sm uppercase tracking-wide text-oxblood-deep mb-2">
+            Starting equipment
+          </h3>
+          <ul className="space-y-1">
+            {equipment.map((item, index) => (
+              <li key={`${item}-${index}`} className="text-sm font-mono flex gap-2">
+                <span className="text-brass">◆</span>
+                {item}
+              </li>
+            ))}
           </ul>
         </div>
       </div>

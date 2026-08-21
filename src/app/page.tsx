@@ -29,7 +29,7 @@ interface Draft {
   backgroundId: string | null;
   chosenSkills: string[];
   scores: Record<AbilityKey, number>;
-  abilityMethod: AbilityMethod;
+  abilityMethod: AbilityMethod | null;
   equipmentSelections: Record<string, string>;
 }
 
@@ -45,7 +45,7 @@ const emptyDraft: Draft = {
   backgroundId: null,
   chosenSkills: [],
   scores: emptyScores,
-  abilityMethod: "point-buy",
+  abilityMethod: null,
   equipmentSelections: {},
 };
 
@@ -108,7 +108,7 @@ export default function Home() {
     { id: "race", label: "Race", done: !!draft.raceId },
     { id: "class", label: "Class", done: !!draft.classId },
     { id: "background", label: "Background", done: !!draft.backgroundId },
-    { id: "abilities", label: "Ability Scores", done: true },
+    { id: "abilities", label: "Ability Scores", done: !!draft.abilityMethod },
     { id: "equipment", label: "Starting Equipment", done: equipmentComplete },
     {
       id: "review",
@@ -298,7 +298,7 @@ export default function Home() {
             <AbilityScores
               scores={draft.scores}
               setScores={(scores) => setDraft((d) => ({ ...d, scores }))}
-              method={draft.abilityMethod ?? "point-buy"}
+              method={draft.abilityMethod ?? null}
               setMethod={(abilityMethod) => setDraft((d) => ({ ...d, abilityMethod }))}
               race={race}
             />
